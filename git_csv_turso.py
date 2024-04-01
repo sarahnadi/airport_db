@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
+load_dotenv()
+
 
 def connect_db():
     """Connects to the database.
@@ -15,7 +17,9 @@ def connect_db():
 
     url = os.getenv("TURSO_DATABASE_URL")
     auth_token = os.getenv("TURSO_AUTH_TOKEN")
-    conn = libsql.connect("airports.db")  # Assuming local database
+    conn = libsql.connect("airports.db", sync_url=url, auth_token=auth_token)
+    conn.sync()
+    # conn = libsql.connect("airports.db")  # Assuming local database
     return conn
 
 
@@ -43,7 +47,8 @@ def create_table(conn, table_name, df, fill_missing_values=True):
 
     # Sanitize table name
     valid_chars = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    sanitized_table_name = "".join(char for char in table_name if char in valid_chars)
+    sanitized_table_name = "".join(
+        char for char in table_name if char in valid_chars)
 
     # Create table query
     create_table_query = f"""create table if not exists {sanitized_table_name} ({columns_types})"""
@@ -73,13 +78,12 @@ def insert_data(conn, table_name, df):
             # Constructing the SQL INSERT query dynamically
             columns = ", ".join(row.index)
             # Ensure values are properly formatted (escaping single quotes)
-            values = ", ".join([f"'{str(value).replace("'", "''")}'" for value in row.values])
-
+            values = ""
             query = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
             print(query)
             cursor.execute(query)
+            conn.commit()
 
-        conn.commit()
         print("Data inserted successfully.")
     except libsql.Error as e:
         print(f"Error inserting data: {e}")
@@ -96,7 +100,8 @@ def sanitize_filename(filename):
     """
 
     valid_chars = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    sanitized_filename = "".join(char for char in filename if char in valid_chars)
+    sanitized_filename = "".join(
+        char for char in filename if char in valid_chars)
     return sanitized_filename.split(".")[0]  # Remove extension
 
 
@@ -114,9 +119,9 @@ if __name__ == "__main__":
             # Sanitize filename and remove ".csv" extension
             sanitized_filename = sanitize_filename(filename.split(".")[0])
 
-
             # Optional argument for handling missing values
 
-            create_table(conn, sanitized_filename, df, fill_missing_values=True)
+            create_table(conn, sanitized_filename,
+                         df, fill_missing_values=True)
 
             insert_data(conn, sanitized_filename, df)
