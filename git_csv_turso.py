@@ -78,9 +78,10 @@ def insert_data(conn, table_name, df):
             # Constructing the SQL INSERT query dynamically
             columns = ", ".join(row.index)
             # Ensure values are properly formatted (escaping single quotes)
-            values = ""
+            values = ", ".join([f"'{value}'" if isinstance(
+                value, str) else str(value) for value in row.values])
             query = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-            print(query)
+            # print(query)
             cursor.execute(query)
             conn.commit()
 
