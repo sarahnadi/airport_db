@@ -10,5 +10,3 @@
 using the DataFrame columns and data types (optionally handling missing
 values).
 8. **Inserts data:** It calls the `insert_data` function to insert the data from the DataFrame into the newly created table.
-9. **Closes connection:** After processing all files, it closes the database connection using `conn.close`.
-10. **Prints confirmation:** It prints a message indicating successful database initialization.
