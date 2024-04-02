@@ -135,24 +135,3 @@ def daily_update():
 
 if __name__ == "__main__":
     initialize_database("csv_files")
-
-# if __name__ == "__main__":
-#     conn = connect_db()
-
-#     csv_folder = "csv_files"  # Path to the folder containing CSV files
-#     for filename in os.listdir(csv_folder):
-#         if filename.endswith(".csv"):
-#             full_path = os.path.join(csv_folder, filename)
-
-#             # Read the CSV file
-#             df = pd.read_csv(full_path)
-
-#             # Sanitize filename and remove ".csv" extension
-#             sanitized_filename = sanitize_filename(filename.split(".")[0])
-
-
-#             # Optional argument for handling missing values
-
-#             create_table(conn, sanitized_filename, df, fill_missing_values=True)
-
-#             insert_data(conn, sanitized_filename, df)
