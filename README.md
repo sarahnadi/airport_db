@@ -1,6 +1,6 @@
 # airport_db
 
-1. **Connects to the database:** It calls the `connect_db` function to establish a connection with the database using credentials stored in environment variables file (.env) .
+1. **Connects to the database:** It calls the `connect_db` function to establish a connection with the database using credentials (TURSO_DATABASE_URL , TURSO_AUTH_TOKEN) stored in environment variables file (.env) .
 2. **Loops through CSV files:** It iterates through the files in the specified `csv_folder` (default: "csv_files") using `os.listdir`.
 3. **Processes only CSV files:** It checks if the filename ends with ".csv" using `filename.endswith(".csv")`.
 4. **Builds the full path:** It constructs the absolute path to the CSV file using `os.path.join`.
