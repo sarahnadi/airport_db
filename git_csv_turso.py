@@ -17,7 +17,7 @@ def connect_db():
 
     url = os.getenv("TURSO_DATABASE_URL")
     auth_token = os.getenv("TURSO_AUTH_TOKEN")
-    conn = libsql.connect("tg.db", sync_url=url, auth_token=auth_token)
+    conn = libsql.connect("airports.db", sync_url=url, auth_token=auth_token)
     conn.sync()
     # conn = libsql.connect("airports.db")  # Assuming local database
     return conn
@@ -105,7 +105,7 @@ def sanitize_filename(filename):
         char for char in filename if char in valid_chars)
     return sanitized_filename.split(".")[0]  # Remove extension
 
-#initialization function: has the same role as main here.
+# initialization function: has the same role as main here.
 
 
 if __name__ == "__main__":
