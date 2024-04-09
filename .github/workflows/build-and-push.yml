@@ -38,20 +38,22 @@ jobs:
       - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         name: Build && Push Docker image (dev branch)
         working-directory: .
-        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
-             docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
-        
+        run: |
+          docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge &&
+          docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
 
       - if: ${{ github.event_name == 'pull_request' }}
         name: Build && Push Docker image (edge - pull request)
         working-directory: .
-        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
-             docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+        run: |
+          docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
  
 
       - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master'}}
         name: Build && Push Docker image (latest - main branch)
         working-directory: .
-        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
-             docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+        run: | 
+          docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
     
