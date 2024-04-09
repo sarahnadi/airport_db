@@ -35,7 +35,8 @@ jobs:
       #   # Add test commands here. For example:
       #   #  - run: pytest tests.py
 
-      - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev'}}
+      # - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev'}}
+      - if: ${{ github.event_name == 'push' && contains(github.ref, 'dev') }}
         name: Build && Push Docker image (edge - dev branch)
         working-directory: .
         run: | 
@@ -43,7 +44,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
 
       - if: ${{ github.event_name == 'pull_request' }}
-        name: Build && Push Docker image (edge - pull request)
+        name: Build && Push Docker image ( pull request)
         working-directory: .
         run: |
           docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
@@ -51,7 +52,7 @@ jobs:
  
 
       - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master'}}
-        name: Build && Push Docker image (latest - main branch)
+        name: Build && Push Docker image (latest - master branch)
         working-directory: .
         run: | 
           docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:latest
