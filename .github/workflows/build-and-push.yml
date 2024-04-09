@@ -35,19 +35,23 @@ jobs:
       #   # Add test commands here. For example:
       #   #  - run: pytest tests.py
 
-      - name: Build Docker image
-        working-directory: .
-        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
-
       - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        name: Push Docker image (main branch)
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+        name: Build && Push Docker image (dev branch)
+        working-directory: .
+        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
+             docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
+        
 
       - if: ${{ github.event_name == 'pull_request' }}
-        name: Push Docker image (edge - pull request)
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
+        name: Build && Push Docker image (edge - pull request)
+        working-directory: .
+        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+             docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
+ 
 
       - if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master'}}
-        name: Push Docker image (latest - main branch)
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:latest
-        # condition: ${{ github.event.name == 'push' && github.base_branch == 'master' }}
+        name: Build && Push Docker image (latest - main branch)
+        working-directory: .
+        run: docker build . --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:latest
+             docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:latest
+    
