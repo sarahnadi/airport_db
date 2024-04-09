@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   # Trigger on push events to the main branch
   push:
-    branches: [ master ]
+    branches: [ master, dev ]
   # Trigger on pull request events
   pull_request:
     types: [ opened, closed ]
