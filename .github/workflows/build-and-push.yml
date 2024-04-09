@@ -31,7 +31,7 @@ jobs:
 
       - name: Push Docker image (main branch)
         run: docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:${{ github.sha }}
-        condition: ${{ github.event.name == 'push' && github.base_branch == 'main' }}
+        condition: ${{ github.event.name == 'push' && github.base_branch == 'dev' }}
 
       - name: Push Docker image (edge - pull request)
         run: docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:edge
@@ -39,4 +39,4 @@ jobs:
 
       - name: Push Docker image (latest - main branch)
         run: docker push ${{ secrets.DOCKER_USERNAME }}/git_csv_turso_init:latest
-        condition: ${{ github.event.name == 'push' && github.base_branch == 'main' }}
+        condition: ${{ github.event.name == 'push' && github.base_branch == 'master' }}
