@@ -56,8 +56,7 @@ def download_file(url, local_filename):
     print(f"{local_filename} downloaded successfully.")
     return True
 
-
-def main():
+def csv_download_initiallization():
     """Downloads CSV files from the GitHub link and checks for updates."""
 
     base_url = "https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/"  # Replace with the actual GitHub link
@@ -84,4 +83,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    csv_download_initiallization()
