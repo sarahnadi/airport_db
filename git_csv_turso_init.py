@@ -99,6 +99,7 @@ def insert_data(conn, table_name, df):
         print(f"Error inserting data: {e}")
 
 
+
 def sanitize_filename(filename):
     """Sanitizes a filename for database table naming.
 
