@@ -2,3 +2,8 @@ csv_files/*.csv
 .env
 *.db
 hi.py
+__pycache__/
+pipeline.py
+csv_files-py.py
+tmpldnymu05
+
