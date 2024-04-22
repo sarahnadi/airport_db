@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the source code into the container.
 
 # # Expose the port that the application listens on.
-# EXPOSE 8000
+EXPOSE 3000
 
 # Run the application.
-ENTRYPOINT ["python" ,"git_csv_turso_init.py"]
+ENTRYPOINT ["dasgster", "dev", "-f", "git_csv_turso_init.py"]
