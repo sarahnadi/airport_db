@@ -17,4 +17,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 3000
 
 # Run the application.
-ENTRYPOINT ["dasgster", "dev", "-f", "git_csv_turso_init.py"]
+ENTRYPOINT ["dagster", "dev", "-f", "git_csv_turso_init.py"]
