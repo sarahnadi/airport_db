@@ -10,6 +10,11 @@ import hashlib
 from dagster import asset
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError 
+from dagster import (
+    AssetSelection,
+    Definitions,
+    define_asset_job,
+)
 
 load_dotenv()
 
@@ -25,6 +30,7 @@ def connect_db():
     # conn.sync()
     # sql alchemy
     url = f"sqlite+libsql://{server}?authToken={auth_token}&secure=true"
+    # in url here I can use postgres 
     engine = create_engine(url)
     print(url)
     # conn = libsql.connect("airports.db")
@@ -57,19 +63,10 @@ def create_table(conn, table_name, df, fill_missing_values=True):
         print(f"Error creating table: {e}")
 
 
-# def insert_data(conn, table_name, df):
-#     """Inserts data into an existing table.
-#     """
-#     try:
-#         # Direct insertion using pandas.to_sql
-#         df.to_sql(table_name, conn, index=False, if_exists='replace')
-#         print(f"Data inserted into table '{table_name}' successfully!")
-#     except Exception as e:
-#         print(f"Error inserting data: {e}")
-
-def insert_data(conn, table_name, df, chunksize=5000):
+def insert_data(conn, table_name, df, chunksize=1024):
     """Inserts data into an existing table in chunks.
     """
+
     chunk_number = 1 
     start_index = 0
     while start_index < len(df):
@@ -77,11 +74,35 @@ def insert_data(conn, table_name, df, chunksize=5000):
         data_chunk = df.iloc[start_index:end_index]  # Select data chunk
 
         try:
+
             data_chunk.to_sql(table_name, conn, index=False, if_exists='replace')
             print(f"Data chunk number {chunk_number} inserted into table '{table_name}' successfully!")
             # chunk_number += 1
         except Exception as e:
 
+            print(f"Error inserting data chunk {chunk_number}: {e}")
+        finally:
+            chunk_number += 1
+
+        start_index = end_index
+
+def insert_data(conn, table_name, df, chunksize=5000):
+    """Inserts data into an existing table in chunks, replacing double quotes with escaped double quotes.
+    """
+
+    chunk_number = 1
+    start_index = 0
+    while start_index < len(df):
+        end_index = min(start_index + chunksize, len(df))
+
+        # Replace double quotes with escaped double quotes for all string columns
+        data_chunk = df.apply(lambda col: col.str.replace('"', "'") if col.dtype == object else col, axis=0)
+        data_chunk = data_chunk.iloc[start_index:end_index]  # Select data chunk
+
+        try:
+            data_chunk.to_sql(table_name, conn, index=False, if_exists='replace')
+            print(f"Data chunk number {chunk_number} inserted into table '{table_name}' successfully!")
+        except Exception as e:
             print(f"Error inserting data chunk {chunk_number}: {e}")
         finally:
             chunk_number += 1
@@ -185,7 +206,7 @@ def initialize_database():
 
             # Sanitize filename and remove ".csv" extension
             sanitized_filename = sanitize_filename(filename.split(".")[0])
-
+ 
             # Create table with optional handling of missing values
             # create_table(conn, sanitized_filename, df, fill_missing_values=True)
 
@@ -195,7 +216,15 @@ def initialize_database():
     # conn.close()  # Close the database connection after processing
     print("Database initialization complete!")
 
-
+defs = Definitions(
+    assets=[csv_download_initialization, initialize_database],
+    jobs=[
+        define_asset_job(
+            name= "airport_db_dagster_job",
+            selection=[csv_download_initialization, initialize_database]
+        )
+    ]
+)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,12 @@ import os
 import hashlib
 from dagster import asset
 import subprocess
+from dagster import (
+    AssetSelection,
+    Definitions,
+    define_asset_job,
+    ScheduleDefinition,
+)
 
 
 
@@ -70,14 +76,6 @@ def create_table(conn, table_name, df, fill_missing_values=True):
 
 def insert_data(conn, table_name, df):
     """Inserts data into an existing table.
-
-    Args:
-        conn (libsql.Connection): The connection object to the database.
-        table_name (str): The name of the table to insert data into.
-        df (pandas.DataFrame): The DataFrame containing the data to be inserted.
-
-    Raises:
-        libsql.Error: If there's an error inserting data.
     """
 
     try:
@@ -87,12 +85,10 @@ def insert_data(conn, table_name, df):
             columns = ", ".join(row.index)
             # Ensure values are properly formatted (escaping single quotes)
             values = ", ".join([f"'{str(value).replace("'", "''")}'" for value in row.values])
-
             query = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
             print(query)
             cursor.execute(query)
             
-
         # conn.commit()
         print("Data inserted successfully.")
     except libsql.Error as e:
@@ -102,12 +98,6 @@ def insert_data(conn, table_name, df):
 
 def sanitize_filename(filename):
     """Sanitizes a filename for database table naming.
-
-    Args:
-        filename (str): The filename to sanitize.
-
-    Returns:
-        str: The sanitized filename with invalid characters replaced by underscores.
     """
 
     valid_chars = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -224,9 +214,6 @@ def initialize_database():
     # conn.close()  # Close the database connection after processing
     print("Database initialization complete!")
 
-# @asset
-# def csv_folder():
-#     return "csv_files"
 
 def daily_update():
 
@@ -246,6 +233,24 @@ def run_turso_commands(context):
     
     # You can optionally return data from this function if needed
     return {"message": "Turso DB commands executed successfully!"}
+
+
+defs = Definitions(
+    assets=[csv_download_initialization, initialize_database, run_turso_commands],
+    jobs=[
+        define_asset_job(
+            name= "airport_db_dagster_job",
+            selection=[csv_download_initialization ,initialize_database, run_turso_commands]
+        )
+    ],
+    schedules=[
+        ScheduleDefinition(
+            name="airport_db_dagster_schedule",
+            job_name="airport_db_dagster_job",
+            cron_schedule="@daily",
+        )
+    ]
+)
 
 if __name__ == "__main__":
     csv_download_initialization()
