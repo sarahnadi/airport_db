@@ -1,4 +1,3 @@
-# import libsql_experimental as libsql
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -13,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from dagster import (
     AssetSelection,
     Definitions,
+    ScheduleDefinition,
     define_asset_job,
 )
 
@@ -20,26 +20,28 @@ load_dotenv()
 
 
 def connect_db():
-    """Connects to the database.
+    """Connects to the PostgreSQL database using a connection string.
     """
-    server = os.getenv("SERVER")
-    # url = os.getenv("TURSO_DATABASE_URL")
-    auth_token = os.getenv("TURSO_AUTH_TOKEN")
 
-    # conn = libsql.connect("airports.db", sync_url= url, auth_token=auth_token)  # Assuming local database
-    # conn.sync()
-    # sql alchemy
-    # url = f"sqlite+libsql://{server}?authToken={auth_token}&secure=true"
-    url = f"postgresql://postgres.ghkrirsojzgwpgfowqqq:[YOUR-PASSWORD]@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
-    # in url here I can use postgres 
-    engine = create_engine(url)
-    print(url)
-    # conn = libsql.connect("airports.db")
-    # return conn
+    server = os.getenv("POSTGRES_SERVER")  # Assuming environment variable for Postgres server
+    port = os.getenv("POSTGRES_PORT")  # Assuming environment variable for Postgres port
+    database = os.getenv("POSTGRES_DATABASE")  # Assuming environment variable for Postgres database name
+    username = os.getenv("POSTGRES_USERNAME")  # Assuming environment variable for Postgres username
+    password = os.getenv("POSTGRES_PASSWORD")  # Assuming environment variable for Postgres password
+    psswd = os.getenv("PSSWD")
+
+    # Construct the connection string with connection parameters
+    ## below is the connection string to postgresql
+    # conn_string = f"postgresql://{username}:{password}@{server}:{port}/{database}"
+    conn_string=f"postgresql://postgres.ghkrirsojzgwpgfowqqq:{psswd}@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
+
+    engine = create_engine(conn_string)
+    print(f"Connected to PostgreSQL database: {conn_string}")
     return engine
 
+
 def create_table(conn, table_name, df, fill_missing_values=True):
-    """Creates a table in the database.
+    """Creates a table in the PostgreSQL database.
     """
 
     # Handle missing values (optional)
@@ -62,30 +64,8 @@ def create_table(conn, table_name, df, fill_missing_values=True):
         print(f"Table '{sanitized_table_name}' created successfully!")
     except Exception as e:
         print(f"Error creating table: {e}")
+        raise
 
-
-# def insert_data(conn, table_name, df, chunksize=1024):
-#     """Inserts data into an existing table in chunks.
-#     """
-
-#     chunk_number = 1 
-#     start_index = 0
-#     while start_index < len(df):
-#         end_index = min(start_index + chunksize, len(df))
-#         data_chunk = df.iloc[start_index:end_index]  # Select data chunk
-
-#         try:
-
-#             data_chunk.to_sql(table_name, conn, index=False, if_exists='replace')
-#             print(f"Data chunk number {chunk_number} inserted into table '{table_name}' successfully!")
-#             # chunk_number += 1
-#         except Exception as e:
-
-#             print(f"Error inserting data chunk {chunk_number}: {e}")
-#         finally:
-#             chunk_number += 1
-
-#         start_index = end_index
 
 def insert_data(conn, table_name, df, chunksize=5000):
     """Inserts data into an existing table in chunks, replacing double quotes with escaped double quotes.
@@ -105,6 +85,7 @@ def insert_data(conn, table_name, df, chunksize=5000):
             print(f"Data chunk number {chunk_number} inserted into table '{table_name}' successfully!")
         except Exception as e:
             print(f"Error inserting data chunk {chunk_number}: {e}")
+            raise
         finally:
             chunk_number += 1
 
@@ -224,6 +205,13 @@ defs = Definitions(
             name= "airport_db_dagster_job",
             selection=[csv_download_initialization, initialize_database]
         )
+    ],
+    schedules=[
+        ScheduleDefinition(
+            name="airport_db_dagster_schedule",
+            job_name="airport_db_dagster_job",
+            cron_schedule="@daily",
+        )
     ]
 )
 
@@ -231,3 +219,4 @@ defs = Definitions(
 if __name__ == "__main__":
     csv_download_initialization()
     initialize_database("csv_files")
+

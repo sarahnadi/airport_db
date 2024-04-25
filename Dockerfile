@@ -1,20 +1,21 @@
 FROM python:3.12.2-slim
-# Prevents Python from writing pyc files.
-ENV PYTHONDONTWRITEBYTECODE=1
 
-# Keeps Python from buffering stdout and stderr to avoid situations where
-# the application crashes without emitting any logs due to buffering.
-ENV PYTHONUNBUFFERED=1
+RUN mkdir -p /opt/dagster/dagster_home /opt/dagster/app
 
-WORKDIR /app
+RUN pip install dagster-webserver dagster-postgres dagster-aws
 
+# Copy your code and workspace to /opt/dagster/app
+COPY git_csv_pg_sqlalch.py workspace.yaml /opt/dagster/app/
+
+ENV DAGSTER_HOME=/opt/dagster/dagster_home/
+
+# Copy dagster instance YAML to $DAGSTER_HOME
+COPY dagster.yaml /opt/dagster/dagster_home/
+
+WORKDIR /opt/dagster/app
 COPY . .
-# Switch to the non-privileged user to run the application.
-RUN pip install --no-cache-dir -r requirements.txt
-# Copy the source code into the container.
+RUN pip install -r requirements.txt
 
-# # Expose the port that the application listens on.
 EXPOSE 3000
 
-# Run the application.
-ENTRYPOINT ["dagster", "dev", "-f", "git_csv_turso_init.py"]
+ENTRYPOINT ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000"]
